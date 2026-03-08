@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鈔極VIP 管理後台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:#C9A84C; --gold-light:#E8C97A; --gold-dark:#9A7A2E;
+  --bg:#0D0D0D; --sidebar:#111; --card:#181818; --card2:#1E1E1E;
+  --border:rgba(255,255,255,0.08); --border-gold:rgba(201,168,76,0.2);
+  --text:#F0EAD6; --muted:#6B6560; --muted2:#9A9590;
+  --green:#27AE60; --red:#E74C3C; --yellow:#F39C12; --blue:#3498DB; --purple:#9B59B6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;display:flex;min-height:100vh;overflow-x:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:240px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;}
+.sidebar-logo{padding:28px 24px;border-bottom:1px solid var(--border);}
+.logo-text{font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:900;color:var(--gold);}
+.logo-sub{font-size:0.7rem;color:var(--muted);margin-top:2px;letter-spacing:0.1em;}
+.sidebar-nav{flex:1;padding:16px 0;overflow-y:auto;}
+.nav-section-label{font-size:0.65rem;letter-spacing:0.15em;color:var(--muted);padding:16px 24px 8px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 24px;cursor:pointer;transition:all 0.2s;position:relative;font-size:0.9rem;color:var(--muted2);}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.04);}
+.nav-item.active{color:var(--gold);background:rgba(201,168,76,0.08);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--gold);}
+.nav-icon{width:18px;text-align:center;font-size:1rem;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:999px;}
+.sidebar-user{padding:20px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:var(--bg);}
+.user-name{font-size:0.85rem;font-weight:500;}
+.user-role{font-size:0.72rem;color:var(--muted);}
+
+/* ── MAIN ── */
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column;}
+.topbar{background:var(--sidebar);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+.page-title{font-size:1.1rem;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:16px;}
+.topbar-btn{background:transparent;border:1px solid var(--border-gold);color:var(--gold);padding:8px 18px;border-radius:4px;font-size:0.82rem;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+.topbar-btn:hover{background:rgba(201,168,76,0.1);}
+.topbar-btn.primary{background:linear-gradient(135deg,var(--gold-light),var(--gold));color:var(--bg);border-color:transparent;font-weight:700;}
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 14px;}
+.search-bar input{background:transparent;border:none;color:var(--text);font-size:0.85rem;outline:none;width:200px;font-family:inherit;}
+.search-bar input::placeholder{color:var(--muted);}
+.content{padding:32px;flex:1;}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px;position:relative;overflow:hidden;}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.stat-card.gold::after{background:linear-gradient(90deg,var(--gold),transparent);}
+.stat-card.green::after{background:linear-gradient(90deg,var(--green),transparent);}
+.stat-card.red::after{background:linear-gradient(90deg,var(--red),transparent);}
+.stat-card.blue::after{background:linear-gradient(90deg,var(--blue),transparent);}
+.stat-label{font-size:0.78rem;color:var(--muted);margin-bottom:12px;letter-spacing:0.05em;}
+.stat-num{font-family:'Noto Serif TC',serif;font-size:2rem;font-weight:900;}
+.stat-num.gold{color:var(--gold);}
+.stat-num.green{color:var(--green);}
+.stat-num.red{color:var(--red);}
+.stat-num.blue{color:var(--blue);}
+.stat-change{font-size:0.75rem;margin-top:8px;}
+.stat-change.up{color:var(--green);}
+.stat-change.down{color:var(--red);}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.card-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:1rem;font-weight:700;}
+.card-actions{display:flex;gap:8px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+
+/* ── FILTERS ── */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;padding:16px 24px;border-bottom:1px solid var(--border);}
+.filter-btn{padding:6px 14px;border-radius:4px;font-size:0.8rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted2);font-family:inherit;transition:all 0.2s;}
+.filter-btn:hover,.filter-btn.active{background:rgba(201,168,76,0.1);border-color:var(--border-gold);color:var(--gold);}
+.filter-select{padding:6px 12px;border-radius:4px;font-size:0.8rem;cursor:pointer;border:1px solid var(--border);background:var(--card2);color:var(--text);font-family:inherit;}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{padding:12px 16px;text-align:left;font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap;}
+td{padding:14px 16px;font-size:0.88rem;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+tr:last-child td{border-bottom:none;}
+
+/* ── STATUS BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:0.75rem;font-weight:600;}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;}
+.badge-pending{background:rgba(243,156,18,0.15);color:#F39C12;}.badge-pending::before{background:#F39C12;}
+.badge-approved{background:rgba(39,174,96,0.15);color:#27AE60;}.badge-approved::before{background:#27AE60;}
+.badge-disbursed{background:rgba(52,152,219,0.15);color:#3498DB;}.badge-disbursed::before{background:#3498DB;}
+.badge-rejected{background:rgba(231,76,60,0.15);color:#E74C3C;}.badge-rejected::before{background:#E74C3C;}
+.badge-overdue{background:rgba(155,89,182,0.15);color:#9B59B6;}.badge-overdue::before{background:#9B59B6;}
+.badge-repaid{background:rgba(127,140,141,0.15);color:#7F8C8D;}.badge-repaid::before{background:#7F8C8D;}
+
+/* ── ACTION BUTTONS ── */
+.action-wrap{display:flex;gap:6px;flex-wrap:wrap;}
+.act-btn{padding:5px 12px;border-radius:3px;font-size:0.75rem;cursor:pointer;border:none;font-family:inherit;font-weight:600;transition:all 0.15s;}
+.act-approve{background:rgba(39,174,96,0.15);color:#27AE60;}.act-approve:hover{background:rgba(39,174,96,0.3);}
+.act-reject{background:rgba(231,76,60,0.15);color:#E74C3C;}.act-reject:hover{background:rgba(231,76,60,0.3);}
+.act-view{background:rgba(201,168,76,0.1);color:var(--gold);}.act-view:hover{background:rgba(201,168,76,0.2);}
+.act-disburse{background:rgba(52,152,219,0.15);color:#3498DB;}.act-disburse:hover{background:rgba(52,152,219,0.3);}
+.act-remind{background:rgba(155,89,182,0.15);color:#9B59B6;}.act-remind:hover{background:rgba(155,89,182,0.3);}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+.modal-box{background:var(--card);border:1px solid var(--border-gold);border-radius:10px;width:90%;max-width:680px;max-height:90vh;overflow-y:auto;}
+.modal-head{padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-head h3{font-size:1.1rem;font-weight:700;}
+.modal-close{background:transparent;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;}
+.modal-body{padding:24px 28px;}
+.detail-section{margin-bottom:24px;}
+.detail-section-title{font-size:0.72rem;letter-spacing:0.12em;color:var(--gold);text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.detail-item label{font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;}
+.detail-item span{font-size:0.9rem;font-weight:500;}
+.detail-full{grid-column:1/-1;}
+.modal-foot{padding:20px 28px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+.modal-btn{padding:10px 22px;border-radius:4px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+.btn-approve-lg{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;border:none;}
+.btn-reject-lg{background:rgba(231,76,60,0.15);color:#E74C3C;border:1px solid rgba(231,76,60,0.3);}
+.btn-cancel-lg{background:transparent;color:var(--muted2);border:1px solid var(--border);}
+
+/* ── AMOUNT INPUT ── */
+.amount-input-wrap{background:var(--card2);border:1px solid var(--border-gold);border-radius:6px;padding:16px;margin-bottom:20px;}
+.amount-input-wrap label{font-size:0.82rem;color:var(--muted);margin-bottom:8px;display:block;}
+.amount-input-wrap input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:4px;font-size:1rem;font-family:inherit;outline:none;}
+.amount-input-wrap input:focus{border-color:var(--gold);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:32px;right:32px;z-index:999;background:var(--card);border:1px solid var(--border-gold);border-radius:6px;padding:14px 20px;font-size:0.9rem;transform:translateY(80px);opacity:0;transition:all 0.3s;max-width:300px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-color:rgba(39,174,96,0.4);}
+.toast.error{border-color:rgba(231,76,60,0.4);}
+
+/* ── QUICK NOTES ── */
+.notes-area{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:4px;font-family:inherit;font-size:0.85rem;resize:vertical;min-height:80px;outline:none;}
+.notes-area:focus{border-color:var(--border-gold);}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-top:1px solid var(--border);}
+.pagination-info{font-size:0.8rem;color:var(--muted);}
+.page-btns{display:flex;gap:4px;}
+.page-btn{padding:5px 11px;border-radius:3px;font-size:0.8rem;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;font-family:inherit;}
+.page-btn.active{background:rgba(201,168,76,0.15);border-color:var(--border-gold);color:var(--gold);}
+.page-btn:hover{background:rgba(255,255,255,0.05);}
+
+/* ── PAGES ── */
+.page{display:none;}.page.active{display:block;}
+
+/* ── MINI CHART (CSS bars) ── */
+.mini-bars{display:flex;align-items:flex-end;gap:3px;height:40px;}
+.mini-bar{flex:1;border-radius:2px 2px 0 0;background:rgba(201,168,76,0.3);transition:background 0.2s;}
+.mini-bar:hover{background:var(--gold);}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">鈔極VIP</div>
+    <div class="logo-sub">管理後台 v1.0</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">主要功能</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span>總覽儀表板</div>
+    <div class="nav-item" onclick="showPage('cases',this)"><span class="nav-icon">📋</span>進件管理 <span class="nav-badge" id="pendingBadge">3</span></div>
+    <div class="nav-item" onclick="showPage('loans',this)"><span class="nav-icon">💰</span>貸款管理</div>
+    <div class="nav-item" onclick="showPage('customers',this)"><span class="nav-icon">👤</span>客戶資料</div>
+
+    <div class="nav-section-label">工具</div>
+    <div class="nav-item" onclick="showPage('repayment',this)"><span class="nav-icon">📅</span>還款追蹤</div>
+    <div class="nav-item" onclick="showPage('reports',this)"><span class="nav-icon">📈</span>統計報表</div>
+    <div class="nav-item" onclick="showPage('settings',this)"><span class="nav-icon">⚙️</span>系統設定</div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">管</div>
+    <div><div class="user-name">管理員</div><div class="user-role">Super Admin</div></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">總覽儀表板</div>
+    <div class="topbar-right">
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="搜尋姓名、訂單號..." oninput="globalSearch(this.value)">
+      </div>
+      <button class="topbar-btn primary" onclick="showPage('cases', document.querySelector('.nav-item:nth-child(3)'))">＋ 新增進件</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card gold">
+          <div class="stat-label">本月進件總數</div>
+          <div class="stat-num gold" id="stat-total">47</div>
+          <div class="stat-change up">↑ 12% 較上月</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">核准件數</div>
+          <div class="stat-num green" id="stat-approved">31</div>
+          <div class="stat-change up">↑ 核准率 66%</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">撥款總金額</div>
+          <div class="stat-num blue" id="stat-amount">$412,000</div>
+          <div class="stat-change up">↑ 本月累計</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">待審核件數</div>
+          <div class="stat-num red" id="stat-pending">3</div>
+          <div class="stat-change down">需要處理</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- 最新進件 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">最新進件</div>
+            <button class="topbar-btn" onclick="showPage('cases',document.querySelectorAll('.nav-item')[1])">查看全部</button>
+          </div>
+          <table>
+            <thead><tr><th>訂單編號</th><th>姓名</th><th>狀態</th><th>時間</th></tr></thead>
+            <tbody id="dashRecentTbody"></tbody>
+          </table>
+        </div>
+        <!-- 逾期提醒 -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">⚠️ 逾期提醒</div></div>
+          <table>
+            <thead><tr><th>客戶</th><th>金額</th><th>逾期天數</th><th>操作</th></tr></thead>
+            <tbody id="overdueTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 本週進件趨勢（CSS圖表） -->
+      <div class="card" style="margin-top:16px;">
+        <div class="card-header"><div class="card-title">本週進件趨勢</div></div>
+        <div style="padding:24px 24px 16px; display:flex; gap:24px; align-items:flex-end;">
+          <div style="flex:1;">
+            <div style="display:flex; align-items:flex-end; gap:8px; height:100px; margin-bottom:8px;">
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div style="background:rgba(201,168,76,0.4); width:100%; border-radius:3px 3px 0 0;" id="bar0"></div>
+                <div style="font-size:0.7rem; color:var(--muted);">週一</div>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div style="background:rgba(201,168,76,0.4); width:100%; border-radius:3px 3px 0 0;" id="bar1"></div>
+                <div style="font-size:0.7rem; color:var(--muted);">週二</div>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div style="background:var(--gold); width:100%; border-radius:3px 3px 0 0;" id="bar2"></div>
+                <div style="font-size:0.7rem; color:var(--muted);">週三</div>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div style="background:rgba(201,168,76,0.4); width:100%; border-radius:3px 3px 0 0;" id="bar3"></div>
+                <div style="font-size:0.7rem; color:var(--muted);">週四</div>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div style="background:rgba(201,168,76,0.4); width:100%; border-radius:3px 3px 0 0;" id="bar4"></div>
+                <div style="font-size:0.7rem; color:var(--muted);">週五</div>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div style="background:rgba(201,168,76,0.25); width:100%; border-radius:3px 3px 0 0;" id="bar5"></div>
+                <div style="font-size:0.7rem; color:var(--muted);">週六</div>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div style="background:rgba(201,168,76,0.25); width:100%; border-radius:3px 3px 0 0;" id="bar6"></div>
+                <div style="font-size:0.7rem; color:var(--muted);">週日</div>
+              </div>
+            </div>
+          </div>
+          <div style="min-width:120px; text-align:right;">
+            <div style="font-size:0.78rem; color:var(--muted); margin-bottom:8px;">本週合計</div>
+            <div style="font-size:1.8rem; font-weight:900; color:var(--gold); font-family:'Noto Serif TC',serif;">47</div>
+            <div style="font-size:0.78rem; color:var(--muted); margin-top:4px;">筆進件</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CASES 進件管理 ── -->
+    <div class="page" id="page-cases">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">進件管理</div>
+          <div class="card-actions">
+            <select class="filter-select" onchange="filterCases(this.value)">
+              <option value="all">全部狀態</option>
+              <option value="審核中">審核中</option>
+              <option value="核准">核准</option>
+              <option value="撥款中">撥款中</option>
+              <option value="駁回">駁回</option>
+              <option value="已還款">已還款</option>
+              <option value="逾期">逾期</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <button class="filter-btn active" onclick="filterCases('all',this)">全部</button>
+          <button class="filter-btn" onclick="filterCases('審核中',this)">⏳ 待審核</button>
+          <button class="filter-btn" onclick="filterCases('核准',this)">✅ 核准</button>
+          <button class="filter-btn" onclick="filterCases('撥款中',this)">💸 撥款中</button>
+          <button class="filter-btn" onclick="filterCases('駁回',this)">❌ 駁回</button>
+          <button class="filter-btn" onclick="filterCases('逾期',this)">⚠️ 逾期</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>訂單編號</th><th>申請日期</th><th>姓名</th><th>電話</th>
+                <th>公司電話</th><th>狀態</th><th>核准金額</th><th>還款日</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="casesTbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="pagination-info" id="casesPaginationInfo">顯示 1-10 共 12 筆</div>
+          <div class="page-btns">
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CUSTOMERS ── -->
+    <div class="page" id="page-customers">
+      <div class="card">
+        <div class="card-header"><div class="card-title">客戶資料庫</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>姓名</th><th>身分證</th><th>電話</th><th>進件次數</th><th>核准次數</th><th>最近申請</th><th>操作</th></tr></thead>
+            <tbody id="customersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REPAYMENT ── -->
+    <div class="page" id="page-repayment">
+      <div class="card">
+        <div class="card-header"><div class="card-title">還款追蹤</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>訂單編號</th><th>客戶</th><th>金額</th><th>還款日</th><th>狀態</th><th>逾期天數</th><th>操作</th></tr></thead>
+            <tbody id="repayTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LOANS ── -->
+    <div class="page" id="page-loans">
+      <div class="card">
+        <div class="card-header"><div class="card-title">貸款管理</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>訂單編號</th><th>客戶</th><th>核准金額</th><th>撥款日</th><th>還款日</th><th>狀態</th><th>備註</th></tr></thead>
+            <tbody id="loansTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REPORTS ── -->
+    <div class="page" id="page-reports">
+      <div class="stats-grid">
+        <div class="stat-card gold"><div class="stat-label">本月進件</div><div class="stat-num gold">47</div><div class="stat-change up">↑ 12%</div></div>
+        <div class="stat-card green"><div class="stat-label">本月核准</div><div class="stat-num green">31</div><div class="stat-change up">核准率 66%</div></div>
+        <div class="stat-card blue"><div class="stat-label">本月撥款</div><div class="stat-num blue">$412K</div><div class="stat-change up">↑ 8%</div></div>
+        <div class="stat-card red"><div class="stat-label">逾期率</div><div class="stat-num red">6.5%</div><div class="stat-change down">↑ 需注意</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">月報表（模擬）</div></div>
+        <div style="padding:32px; color:var(--muted); text-align:center; font-size:0.95rem; line-height:2;">
+          📊 完整統計圖表需串接後端資料庫<br>
+          上線後此處將顯示：月進件趨勢、核准率折線圖、撥款金額統計
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="page" id="page-settings">
+      <div class="card" style="max-width:600px;">
+        <div class="card-header"><div class="card-title">系統設定</div></div>
+        <div style="padding:28px; display:flex; flex-direction:column; gap:20px;">
+          <div>
+            <label style="font-size:0.82rem; color:var(--muted); display:block; margin-bottom:8px;">官方LINE ID</label>
+            <input type="text" value="@superviploan" style="width:100%; background:var(--card2); border:1px solid var(--border); color:var(--text); padding:10px 14px; border-radius:4px; font-family:inherit; font-size:0.95rem; outline:none;">
+          </div>
+          <div>
+            <label style="font-size:0.82rem; color:var(--muted); display:block; margin-bottom:8px;">網站名稱</label>
+            <input type="text" value="鈔極VIP" style="width:100%; background:var(--card2); border:1px solid var(--border); color:var(--text); padding:10px 14px; border-radius:4px; font-family:inherit; font-size:0.95rem; outline:none;">
+          </div>
+          <div>
+            <label style="font-size:0.82rem; color:var(--muted); display:block; margin-bottom:8px;">後端 API URL</label>
+            <input type="text" value="https://superviploan.online/api" style="width:100%; background:var(--card2); border:1px solid var(--border); color:var(--text); padding:10px 14px; border-radius:4px; font-family:inherit; font-size:0.95rem; outline:none;">
+          </div>
+          <button class="topbar-btn primary" style="align-self:flex-start;">儲存設定</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ── CASE DETAIL MODAL ── -->
+<div class="modal-overlay" id="caseModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>📋 案件詳情</h3>
+      <button class="modal-close" onclick="closeModal('caseModal')">✕</button>
+    </div>
+    <div class="modal-body" id="caseModalBody">
+      <div class="detail-section">
+        <div class="detail-section-title">申請人資料</div>
+        <div class="detail-grid" id="detailBasic"></div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">緊急聯繫人</div>
+        <div id="detailContacts"></div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">審核備註</div>
+        <textarea class="notes-area" id="caseNotes" placeholder="輸入審核備註..."></textarea>
+      </div>
+      <div class="amount-input-wrap" id="amountWrap">
+        <label>核准金額（元）</label>
+        <input type="number" id="approveAmount" placeholder="例如：15000" min="1000" max="500000">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn btn-cancel-lg" onclick="closeModal('caseModal')">關閉</button>
+      <button class="modal-btn btn-reject-lg" onclick="caseAction('reject')">❌ 駁回</button>
+      <button class="modal-btn btn-approve-lg" onclick="caseAction('approve')">✅ 核准</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SAMPLE DATA ──
+const cases = [
+  { id:'VIP20241201001', date:'2024-12-01', name:'王小明', phone:'0912-345-678', companyPhone:'02-2345-6789', company:'台灣科技股份有限公司', position:'業務部 業務員', idcard:'A123456789', status:'審核中', amount:null, repayDate:null, contacts:[{name:'王大明',rel:'父母',phone:'0921-111-222'},{name:'陳小花',rel:'朋友',phone:'0933-333-444'},{name:'李大偉',rel:'同事',phone:'0966-555-666'}], notes:'' },
+  { id:'VIP20241130002', date:'2024-11-30', name:'李小花', phone:'0933-222-111', companyPhone:'04-1234-5678', company:'花蓮食品有限公司', position:'行政人員', idcard:'F234567890', status:'核准', amount:15000, repayDate:'2024-12-10', contacts:[{name:'李大樹',rel:'父母',phone:'0912-777-888'},{name:'陳美美',rel:'配偶',phone:'0955-999-000'},{name:'張小龍',rel:'朋友',phone:'0988-111-222'}], notes:'工作穩定，聯繫人核實完成' },
+  { id:'VIP20241129003', date:'2024-11-29', name:'張大偉', phone:'0966-444-333', companyPhone:'07-9876-5432', company:'高雄建設開發', position:'工程師', idcard:'E345678901', status:'撥款中', amount:8000, repayDate:'2024-12-06', contacts:[{name:'張媽媽',rel:'父母',phone:'0911-222-333'},{name:'林小明',rel:'朋友',phone:'0922-444-555'},{name:'黃阿花',rel:'同事',phone:'0933-666-777'}], notes:'核准，已撥款' },
+  { id:'VIP20241128004', date:'2024-11-28', name:'陳美玲', phone:'0988-111-000', companyPhone:'03-5432-1098', company:'新竹半導體', position:'客服專員', idcard:'B456789012', status:'駁回', amount:null, repayDate:null, contacts:[{name:'陳老爸',rel:'父母',phone:'0944-888-999'},{name:'劉小如',rel:'配偶',phone:'0955-000-111'},{name:'周大明',rel:'朋友',phone:'0966-222-333'}], notes:'聯繫人無法確認，暫時駁回' },
+  { id:'VIP20241127005', date:'2024-11-27', name:'林志遠', phone:'0922-555-666', companyPhone:'02-8765-4321', company:'台北金融服務', position:'財務分析師', idcard:'C567890123', status:'已還款', amount:20000, repayDate:'2024-12-04', contacts:[{name:'林媽媽',rel:'父母',phone:'0911-333-444'},{name:'鄭小娟',rel:'配偶',phone:'0933-555-666'},{name:'吳大志',rel:'朋友',phone:'0977-777-888'}], notes:'準時還款，優質客戶' },
+  { id:'VIP20241126006', date:'2024-11-26', name:'吳雅婷', phone:'0955-777-888', companyPhone:'06-2468-1357', company:'台南美食企業', position:'店長', idcard:'D678901234', status:'逾期', amount:12000, repayDate:'2024-12-03', contacts:[{name:'吳爸爸',rel:'父母',phone:'0922-888-999'},{name:'許小明',rel:'配偶',phone:'0944-000-111'},{name:'蔡大花',rel:'朋友',phone:'0966-333-444'}], notes:'聯繫中，請催款' },
+  { id:'VIP20241201007', date:'2024-12-01', name:'黃建宏', phone:'0944-888-777', companyPhone:'02-3333-4444', company:'台北資訊科技', position:'IT工程師', idcard:'G789012345', status:'審核中', amount:null, repayDate:null, contacts:[{name:'黃媽媽',rel:'父母',phone:'0911-444-555'},{name:'蔡小珍',rel:'配偶',phone:'0933-666-777'},{name:'江大明',rel:'同事',phone:'0966-888-999'}], notes:'' },
+  { id:'VIP20241201008', date:'2024-12-01', name:'蔡淑芬', phone:'0911-999-888', companyPhone:'04-5555-6666', company:'台中百貨零售', position:'收銀員', idcard:'H890123456', status:'審核中', amount:null, repayDate:null, contacts:[{name:'蔡爸爸',rel:'父母',phone:'0922-555-666'},{name:'陳大春',rel:'朋友',phone:'0944-777-888'},{name:'林小雲',rel:'朋友',phone:'0966-999-000'}], notes:'' },
+];
+
+let currentCase = null;
+let currentFilter = 'all';
+
+// ── PAGE NAVIGATION ──
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles = {dashboard:'總覽儀表板',cases:'進件管理',loans:'貸款管理',customers:'客戶資料',repayment:'還款追蹤',reports:'統計報表',settings:'系統設定'};
+  document.getElementById('pageTitle').textContent = titles[name] || name;
+  if(name==='cases') renderCases();
+  if(name==='customers') renderCustomers();
+  if(name==='repayment') renderRepayment();
+  if(name==='loans') renderLoans();
+}
+
+// ── STATUS BADGE ──
+function badge(status) {
+  const map = {'審核中':'pending','核准':'approved','撥款中':'disbursed','駁回':'rejected','逾期':'overdue','已還款':'repaid'};
+  return `<span class="badge badge-${map[status]||'pending'}">${status}</span>`;
+}
+
+// ── RENDER CASES ──
+function renderCases() {
+  const filtered = currentFilter==='all' ? cases : cases.filter(c=>c.status===currentFilter);
+  const tbody = document.getElementById('casesTbody');
+  tbody.innerHTML = filtered.map(c => `
+    <tr>
+      <td style="font-family:monospace; color:var(--gold-light); font-size:0.82rem;">${c.id}</td>
+      <td>${c.date}</td>
+      <td style="font-weight:600;">${c.name}</td>
+      <td>${c.phone}</td>
+      <td>${c.companyPhone}</td>
+      <td>${badge(c.status)}</td>
+      <td>${c.amount ? 'NT$'+c.amount.toLocaleString() : '—'}</td>
+      <td>${c.repayDate||'—'}</td>
+      <td>
+        <div class="action-wrap">
+          <button class="act-btn act-view" onclick="openCase('${c.id}')">查看</button>
+          ${c.status==='審核中'?`<button class="act-btn act-approve" onclick="quickApprove('${c.id}')">核准</button><button class="act-btn act-reject" onclick="quickReject('${c.id}')">駁回</button>`:''}
+          ${c.status==='核准'?`<button class="act-btn act-disburse" onclick="disburse('${c.id}')">撥款</button>`:''}
+          ${c.status==='逾期'?`<button class="act-btn act-remind" onclick="remind('${c.id}')">催款</button>`:''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  document.getElementById('casesPaginationInfo').textContent = `顯示 1-${filtered.length} 共 ${filtered.length} 筆`;
+}
+
+function filterCases(val, btn) {
+  currentFilter = val;
+  if(btn) { document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+  renderCases();
+}
+
+// ── OPEN CASE MODAL ──
+function openCase(id) {
+  currentCase = cases.find(c=>c.id===id);
+  if(!currentCase) return;
+  document.getElementById('detailBasic').innerHTML = `
+    <div class="detail-item"><label>訂單編號</label><span style="color:var(--gold-light);font-family:monospace">${currentCase.id}</span></div>
+    <div class="detail-item"><label>申請日期</label><span>${currentCase.date}</span></div>
+    <div class="detail-item"><label>姓名</label><span>${currentCase.name}</span></div>
+    <div class="detail-item"><label>身分證</label><span>${currentCase.idcard}</span></div>
+    <div class="detail-item"><label>電話</label><span>${currentCase.phone}</span></div>
+    <div class="detail-item"><label>公司電話</label><span>${currentCase.companyPhone}</span></div>
+    <div class="detail-item detail-full"><label>公司／職稱</label><span>${currentCase.company} ／ ${currentCase.position}</span></div>
+    <div class="detail-item"><label>目前狀態</label><span>${badge(currentCase.status)}</span></div>
+  `;
+  document.getElementById('detailContacts').innerHTML = currentCase.contacts.map((ct,i)=>`
+    <div style="background:var(--card2);border-radius:6px;padding:12px 16px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+      <div><div style="font-size:0.72rem;color:var(--muted);margin-bottom:2px;">聯繫人${i+1}</div><span style="font-size:0.9rem;font-weight:600;">${ct.name}</span></div>
+      <div><div style="font-size:0.72rem;color:var(--muted);margin-bottom:2px;">關係</div><span style="font-size:0.9rem;">${ct.rel}</span></div>
+      <div><div style="font-size:0.72rem;color:var(--muted);margin-bottom:2px;">電話</div><span style="font-size:0.9rem;">${ct.phone}</span></div>
+    </div>
+  `).join('');
+  document.getElementById('caseNotes').value = currentCase.notes;
+  document.getElementById('approveAmount').value = currentCase.amount||'';
+  document.getElementById('amountWrap').style.display = (currentCase.status==='審核中'||currentCase.status==='核准') ? 'block':'none';
+  document.getElementById('caseModal').classList.add('show');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function caseAction(action) {
+  if(!currentCase) return;
+  if(action==='approve') {
+    const amt = parseInt(document.getElementById('approveAmount').value);
+    if(!amt||amt<1) { showToast('請輸入核准金額','error'); return; }
+    currentCase.status='核准'; currentCase.amount=amt;
+    currentCase.notes=document.getElementById('caseNotes').value;
+    const d=new Date(); d.setDate(d.getDate()+10);
+    currentCase.repayDate=d.toISOString().split('T')[0];
+    closeModal('caseModal'); renderCases();
+    updateDashboard();
+    showToast(`✅ 已核准 ${currentCase.name} 的申請，金額 NT$${amt.toLocaleString()}`,'success');
+  } else {
+    currentCase.status='駁回';
+    currentCase.notes=document.getElementById('caseNotes').value;
+    closeModal('caseModal'); renderCases(); updateDashboard();
+    showToast(`❌ 已駁回 ${currentCase.name} 的申請`,'error');
+  }
+}
+
+function quickApprove(id) { openCase(id); }
+function quickReject(id) {
+  const c = cases.find(x=>x.id===id);
+  if(c){c.status='駁回'; renderCases(); updateDashboard(); showToast(`❌ 已駁回 ${c.name} 的申請`,'error');}
+}
+function disburse(id) {
+  const c=cases.find(x=>x.id===id);
+  if(c){c.status='撥款中'; renderCases(); updateDashboard(); showToast(`💸 ${c.name} 已標記為撥款中`,'success');}
+}
+function remind(id) {
+  const c=cases.find(x=>x.id===id);
+  showToast(`📞 已記錄催款 ${c?.name}`,'success');
+}
+
+// ── RENDER CUSTOMERS ──
+function renderCustomers() {
+  const unique = {};
+  cases.forEach(c=>{ if(!unique[c.idcard]) unique[c.idcard]={...c,count:1,approved:c.status==='核准'||c.status==='撥款中'||c.status==='已還款'?1:0}; else {unique[c.idcard].count++;if(c.status==='核准'||c.status==='撥款中'||c.status==='已還款')unique[c.idcard].approved++;} });
+  document.getElementById('customersTbody').innerHTML = Object.values(unique).map(c=>`
+    <tr>
+      <td style="font-weight:600;">${c.name}</td>
+      <td style="font-family:monospace;font-size:0.82rem;">${c.idcard}</td>
+      <td>${c.phone}</td>
+      <td style="text-align:center;">${c.count}</td>
+      <td style="text-align:center;color:var(--green);">${c.approved}</td>
+      <td>${c.date}</td>
+      <td><button class="act-btn act-view" onclick="openCase('${c.id}')">查看</button></td>
+    </tr>
+  `).join('');
+}
+
+// ── RENDER REPAYMENT ──
+function renderRepayment() {
+  const active = cases.filter(c=>c.status==='核准'||c.status==='撥款中'||c.status==='逾期');
+  document.getElementById('repayTbody').innerHTML = active.map(c=>{
+    const today=new Date(); const due=new Date(c.repayDate||today);
+    const diff=Math.ceil((today-due)/(1000*60*60*24));
+    const overdue=diff>0;
+    return `<tr>
+      <td style="font-family:monospace;font-size:0.82rem;color:var(--gold-light);">${c.id}</td>
+      <td style="font-weight:600;">${c.name}</td>
+      <td>NT$${(c.amount||0).toLocaleString()}</td>
+      <td>${c.repayDate||'—'}</td>
+      <td>${badge(c.status)}</td>
+      <td style="color:${overdue?'var(--red)':'var(--green)'};">${overdue?'+'+diff+'天':'未逾期'}</td>
+      <td><div class="action-wrap">${overdue?`<button class="act-btn act-remind" onclick="remind('${c.id}')">催款</button>`:''}<button class="act-btn act-view" onclick="openCase('${c.id}')">詳情</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RENDER LOANS ──
+function renderLoans() {
+  const active = cases.filter(c=>c.amount);
+  document.getElementById('loansTbody').innerHTML = active.map(c=>`
+    <tr>
+      <td style="font-family:monospace;font-size:0.82rem;color:var(--gold-light);">${c.id}</td>
+      <td style="font-weight:600;">${c.name}</td>
+      <td>NT$${(c.amount||0).toLocaleString()}</td>
+      <td>${c.date}</td>
+      <td>${c.repayDate||'—'}</td>
+      <td>${badge(c.status)}</td>
+      <td style="font-size:0.82rem;color:var(--muted);">${c.notes||'—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ── DASHBOARD ──
+function updateDashboard() {
+  const pending = cases.filter(c=>c.status==='審核中').length;
+  const approved = cases.filter(c=>['核准','撥款中','已還款'].includes(c.status)).length;
+  const totalAmt = cases.filter(c=>c.amount).reduce((a,c)=>a+c.amount,0);
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-approved').textContent = approved;
+  document.getElementById('stat-amount').textContent = '$'+Math.round(totalAmt/1000)+'K';
+  document.getElementById('stat-total').textContent = cases.length;
+  document.getElementById('pendingBadge').textContent = pending;
+  if(pending===0) document.getElementById('pendingBadge').style.display='none';
+
+  // Recent
+  document.getElementById('dashRecentTbody').innerHTML = cases.slice(0,5).map(c=>`
+    <tr><td style="font-family:monospace;font-size:0.78rem;color:var(--gold-light);">${c.id}</td><td>${c.name}</td><td>${badge(c.status)}</td><td style="color:var(--muted);font-size:0.82rem;">${c.date}</td></tr>
+  `).join('');
+
+  // Overdue
+  const overdue = cases.filter(c=>c.status==='逾期');
+  document.getElementById('overdueTbody').innerHTML = overdue.length ? overdue.map(c=>`
+    <tr><td style="font-weight:600;">${c.name}</td><td>NT$${(c.amount||0).toLocaleString()}</td><td style="color:var(--red);">+3天</td><td><button class="act-btn act-remind" onclick="remind('${c.id}')">催款</button></td></tr>
+  `).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">目前無逾期案件 ✅</td></tr>';
+}
+
+// ── BARS ──
+function renderBars() {
+  const vals = [6,8,12,9,7,3,2]; const max=Math.max(...vals);
+  vals.forEach((v,i)=>{ const el=document.getElementById('bar'+i); if(el) el.style.height=(v/max*90)+'px'; });
+}
+
+// ── TOAST ──
+function showToast(msg, type='success') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── GLOBAL SEARCH ──
+function globalSearch(q) {
+  if(!q) return;
+  const found = cases.filter(c=>c.name.includes(q)||c.id.includes(q)||c.phone.includes(q)||c.idcard.includes(q));
+  if(found.length) {
+    showPage('cases',document.querySelectorAll('.nav-item')[1]);
+    currentFilter='all';
+    const tbody=document.getElementById('casesTbody');
+    tbody.innerHTML = found.map(c=>`
+      <tr><td style="font-family:monospace;color:var(--gold-light);font-size:0.82rem;">${c.id}</td><td>${c.date}</td><td style="font-weight:600;">${c.name}</td><td>${c.phone}</td><td>${c.companyPhone}</td><td>${badge(c.status)}</td><td>${c.amount?'NT$'+c.amount.toLocaleString():'—'}</td><td>${c.repayDate||'—'}</td><td><button class="act-btn act-view" onclick="openCase('${c.id}')">查看</button></td></tr>
+    `).join('');
+  }
+}
+
+// ── INIT ──
+updateDashboard();
+renderBars();
+</script>
+</body>
+</html>

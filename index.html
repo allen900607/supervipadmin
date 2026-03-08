@@ -159,6 +159,17 @@ tr:last-child td{border-bottom:none;}
 </style>
 </head>
 <body>
+  <script>
+  // 簡易登入驗證
+  const user = prompt("請輸入管理員帳號：");
+  const pass = prompt("請輸入管理員密碼：");
+
+  // 預設帳號：admin / 密碼：123456
+  if(user !== "admin" || pass !== "123456") {
+     document.body.innerHTML = "<h1 style='color:#E74C3C; text-align:center; margin-top:100px;'>登入失敗，無權限訪問。</h1>";
+     throw new Error("登入失敗，停止載入網頁");
+  }
+</script>
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
